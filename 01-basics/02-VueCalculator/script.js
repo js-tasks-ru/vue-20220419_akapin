@@ -25,10 +25,4 @@ const vm = createApp({
       }
     },
   },
-
-  methods: {
-    onOperatorClick($event) {
-      this.operator = $event.target.value;
-    },
-  },
 }).mount('#app');
