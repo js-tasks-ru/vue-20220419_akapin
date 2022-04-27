@@ -32,17 +32,13 @@ const emails = [
 const vm = createApp({
   data() {
     return {
-      emails,
       search: '',
     };
   },
 
   computed: {
-    filteredEmails() {
-      if (!this.search) {
-        return [];
-      }
-      return emails.filter((it) => it.includes(this.search));
+    processedEmails() {
+      return emails.map((it) => ({ name: it, isMarked: this.search && it.includes(this.search) }));
     },
   },
 }).mount('#app');
