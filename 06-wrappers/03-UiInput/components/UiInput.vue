@@ -18,7 +18,7 @@
       :value="modelValue"
       class="form-control"
       :class="{ 'form-control_sm': small, 'form-control_rounded': rounded }"
-      @input="$emit('update:modelValue', $event.target.value)"
+      @[updateEvent]="$emit('update:modelValue', $event.target.value)"
     />
 
     <div v-if="hasRightSlot" class="input-group__icon">
@@ -38,6 +38,12 @@ export default {
     small: Boolean,
     rounded: Boolean,
     multiline: Boolean,
+
+    modelModifiers: {
+      default: () => ({
+        lazy: false,
+      }),
+    },
   },
 
   emits: ['update:modelValue'],
@@ -48,6 +54,12 @@ export default {
       hasLeftSlot: false,
       hasRightSlot: false,
     };
+  },
+
+  computed: {
+    updateEvent() {
+      return this.modelModifiers.lazy ? 'change' : 'input';
+    },
   },
 
   created() {
