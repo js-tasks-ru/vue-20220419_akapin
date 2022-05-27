@@ -1,13 +1,28 @@
 <template>
-  <div class="input-group input-group_icon input-group_icon-left input-group_icon-right">
-    <div class="input-group__icon">
-      <img class="icon" alt="icon" />
+  <div
+    class="input-group"
+    :class="{
+      'input-group_icon': hasSlot,
+      'input-group_icon-left': hasLeftSlot,
+      'input-group_icon-right': hasRightSlot,
+    }"
+  >
+    <div v-if="hasLeftSlot" class="input-group__icon">
+      <slot name="left-icon" />
     </div>
 
-    <input ref="input" class="form-control form-control_rounded form-control_sm" />
+    <component
+      :is="multiline ? 'textarea' : 'input'"
+      ref="input"
+      v-bind="$attrs"
+      :value="modelValue"
+      class="form-control"
+      :class="{ 'form-control_sm': small, 'form-control_rounded': rounded }"
+      @[updateEvent]="$emit('update:modelValue', $event.target.value)"
+    />
 
-    <div class="input-group__icon">
-      <img class="icon" alt="icon" />
+    <div v-if="hasRightSlot" class="input-group__icon">
+      <slot name="right-icon" />
     </div>
   </div>
 </template>
@@ -15,6 +30,57 @@
 <script>
 export default {
   name: 'UiInput',
+
+  inheritAttrs: false,
+
+  props: {
+    modelValue: String,
+    small: Boolean,
+    rounded: Boolean,
+    multiline: Boolean,
+
+    modelModifiers: {
+      default: () => ({
+        lazy: false,
+      }),
+    },
+  },
+
+  emits: ['update:modelValue'],
+
+  data() {
+    return {
+      hasSlot: false,
+      hasLeftSlot: false,
+      hasRightSlot: false,
+    };
+  },
+
+  computed: {
+    updateEvent() {
+      return this.modelModifiers.lazy ? 'change' : 'input';
+    },
+  },
+
+  created() {
+    this.setSlotsVars();
+  },
+
+  updated() {
+    this.setSlotsVars();
+  },
+
+  methods: {
+    setSlotsVars() {
+      this.hasSlot = Boolean(this.$slots['left-icon']) || Boolean(this.$slots['right-icon']);
+      this.hasLeftSlot = Boolean(this.$slots['left-icon']);
+      this.hasRightSlot = Boolean(this.$slots['right-icon']);
+    },
+
+    focus() {
+      this.$refs.input.focus();
+    },
+  },
 };
 </script>
 

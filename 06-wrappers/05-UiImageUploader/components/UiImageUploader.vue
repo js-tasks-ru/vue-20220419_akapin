@@ -1,8 +1,20 @@
 <template>
   <div class="image-uploader">
-    <label class="image-uploader__preview image-uploader__preview-loading" style="--bg-url: url('/link.jpeg')">
-      <span class="image-uploader__text">Загрузить изображение</span>
-      <input type="file" accept="image/*" class="image-uploader__input" />
+    <label
+      class="image-uploader__preview"
+      :class="{ 'image-uploader__preview-loading': isLoading }"
+      :style="{ '--bg-url': currentPreview ? `url(${currentPreview})` : null }"
+      @click="removeImage"
+    >
+      <span class="image-uploader__text">{{ imageText }}</span>
+      <input
+        ref="input"
+        v-bind="$attrs"
+        type="file"
+        accept="image/*"
+        class="image-uploader__input"
+        @change="onInputChange"
+      />
     </label>
   </div>
 </template>
@@ -10,6 +22,71 @@
 <script>
 export default {
   name: 'UiImageUploader',
+
+  inheritAttrs: false,
+
+  props: {
+    preview: String,
+    uploader: Function,
+  },
+
+  emits: ['remove', 'upload', 'error', 'select'],
+
+  data() {
+    return {
+      isLoading: false,
+      currentPreview: this.preview,
+    };
+  },
+
+  computed: {
+    imageText() {
+      if (!this.currentPreview && !this.isLoading) {
+        return 'Загрузить изображение';
+      } else if (this.isLoading) {
+        return 'Загрузка...';
+      }
+      return 'Удалить изображение';
+    },
+  },
+
+  watch: {
+    preview(newValue) {
+      this.currentPreview = newValue;
+    },
+  },
+
+  methods: {
+    onInputChange(event) {
+      const file = event.target.files[0];
+      this.$emit('select', file);
+
+      if (this.uploader) {
+        this.isLoading = true;
+        this.uploader(file)
+          .then((response) => this.$emit('upload', response))
+          .catch((error) => {
+            this.$emit('error', error);
+            event.target.value = '';
+          })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      } else {
+        this.currentPreview = URL.createObjectURL(file);
+      }
+    },
+
+    removeImage(event) {
+      this.$refs.input.value = '';
+
+      if (this.currentPreview && !this.isLoading) {
+        event.preventDefault();
+        this.currentPreview = null;
+        this.$emit('remove');
+      }
+    },
+  },
 };
 </script>
 
